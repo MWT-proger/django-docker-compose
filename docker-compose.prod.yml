@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+
+  web:
+    build:
+      context: config
+      dockerfile: Dockerfile.prod
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/home/app/config/staticfiles
+      - media_volume:/home/app/config/media
+    expose:
+      - 8000
+    env_file:
+      - example.env.prod
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14.3-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./db_postgresql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    env_file:
+      - example.env.prod.db
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/app/config/staticfiles
+      - media_volume:/home/app/config/media
+    ports:
+      - 80:80
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

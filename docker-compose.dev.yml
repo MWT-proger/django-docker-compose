@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+
+  web_dev:
+    build: config
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./config/:/usr/src/config/
+    ports:
+      - 8000:8000
+    env_file:
+      - example.env.dev
+    depends_on:
+      - db_dev
+
+  db_dev:
+    image: postgres:14.3-alpine
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data/
+      - ./db_postgresql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    env_file:
+      - example.env.dev.db
+    ports:
+      - 5432:5432
+
+volumes:
+  postgres_data_dev:
